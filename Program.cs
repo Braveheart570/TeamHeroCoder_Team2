@@ -108,6 +108,34 @@ namespace PlayerCoder
                 }
 
 
+                //cleans ally with debufs
+                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                {
+                    if (h.statusEffectsAndDurations.Count > 0)
+                    {
+                        if(AttemptCastSpell(Ability.QuickCleanse, h))return;
+                    }
+                }
+
+
+                //use ether on ally
+
+                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                {
+                    if(h.mana < (float)h.maxMana * 0.5f)
+                    {
+                        if (AttemptUseItem(Item.Ether, Ability.Ether, h)) return;
+                    }
+                }
+
+
+                //quick heal
+                Hero qHealTarget = FindHeroWithHealthPercentBellow(80, TeamHeroCoder.BattleState.allyHeroes);
+                if (qHealTarget != null)
+                {
+                    if (AttemptCastSpell(Ability.QuickHeal, qHealTarget)) return;
+                }
+
 
 
 
