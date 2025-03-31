@@ -65,6 +65,31 @@ namespace PlayerCoder
                 //The character with initiative is a figher, do something here...
 
                 Console.WriteLine("this is a cleric");
+
+
+                // haste on self
+                if (!hasStatus(activeHero, StatusEffect.Haste))
+                {
+                    Console.WriteLine("Cleric does not have haste, casting haste on cleric");
+                    if(AttemptCastSpell(Ability.Haste,activeHero))return;
+                }
+
+
+                //resurrection
+                Hero resTarget = FindHeroWithHealthPercentBellow(10, TeamHeroCoder.BattleState.allyHeroes);
+                if (resTarget != null)
+                {
+                    if (AttemptCastSpell(Ability.Resurrection, resTarget)) return;
+                }
+
+                //cure seriouse
+                Hero cureTarget = FindHeroWithHealthPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
+                if (cureTarget != null)
+                {
+                    if (AttemptCastSpell(Ability.CureSerious, cureTarget)) return;
+                }
+
+
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
@@ -74,9 +99,11 @@ namespace PlayerCoder
 
                 if (activeHero.mana < activeHero.maxMana*0.4f)
                 {
+                    Console.WriteLine("using ether on wizard");
                     if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero)) return;
                 }
 
+                Console.WriteLine("casting meteor");
                 if(AttemptCastSpell(Ability.Meteor,target)) return;
 
 
@@ -155,8 +182,32 @@ namespace PlayerCoder
             }
             else
             {
+                Console.WriteLine("not enough mana");
                 return false;
             }
+        }
+
+        static public bool hasStatus(Hero h, StatusEffect effect)
+        {
+            foreach (StatusEffectAndDuration s in h.statusEffectsAndDurations)
+            {
+                if (s.statusEffect == effect) return true;
+            }
+
+            return false;
+        }
+
+        static public Hero FindHeroWithHealthPercentBellow(int percent, List<Hero> team )
+        {
+            foreach(Hero h in team)
+            {
+                if (((float)h.health/(float)h.maxHealth)*100.0f < percent)
+                {
+                    return h;
+                }
+            }
+
+            return null;
         }
 
     }
