@@ -17,41 +17,35 @@ namespace PlayerCoder
 
     public static class MyAI
     {
+
+        static Dictionary<string, double> SpellCosts =  new();
+
+        static bool DictsInitialized = false;
+
         public static string FolderExchangePath = "C:/Users/Ryan/AppData/LocalLow/Wind Jester Games/Team Hero Coder";
+
+        static Hero activeHero;
 
         static public void ProcessAI()
         {
+
             Console.WriteLine("Processing AI!");
+            activeHero = TeamHeroCoder.BattleState.heroWithInitiative;
 
-            #region SampleCode
 
-            if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Fighter)
+            // init dictionaries
+            if (!DictsInitialized)
             {
-                //The character with initiative is a figher, do something here...
-
-                Console.WriteLine("this is a fighter");
-            }
-            else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Cleric)
-            {
-                //The character with initiative is a figher, do something here...
-
-                Console.WriteLine("this is a cleric");
-            }
-            else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
-            {
-                //The character with initiative is a figher, do something here...
-
-                Console.WriteLine("this is a wizard");
+                Console.WriteLine("Initializing Dictionaries");
+                InitializeDictionaries();
+                DictsInitialized = true;
             }
 
-            foreach (InventoryItem ii in TeamHeroCoder.BattleState.allyInventory)
-            {
 
-            }
+            
 
-            //Find the foe with the lowest health
+            // set default target
             Hero target = null;
-
             foreach (Hero hero in TeamHeroCoder.BattleState.foeHeroes)
             {
                 if (hero.health > 0)
@@ -63,23 +57,107 @@ namespace PlayerCoder
                 }
             }
 
-            //This is the line of code that tells FG that we want to perform the attack action and target the foe with the lowest HP
-            TeamHeroCoder.PerformHeroAbility(Ability.Attack, target);
 
-            //Searching for a poisoned hero 
-            foreach (Hero hero in TeamHeroCoder.BattleState.allyHeroes)
+            //--- class code ---//
+
+            if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Cleric)
             {
-                foreach (StatusEffectAndDuration se in hero.statusEffectsAndDurations)
+                //The character with initiative is a figher, do something here...
+
+                Console.WriteLine("this is a cleric");
+            }
+            else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
+            {
+                //The character with initiative is a figher, do something here...
+
+                Console.WriteLine("this is a wizard");
+
+                if (activeHero.mana < activeHero.maxMana*0.4f)
                 {
-                    if (se.statusEffect == StatusEffect.Poison)
-                    {
-                        //We have found a character that is poisoned, do something here...
-                    }
+                    if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero)) return;
                 }
+
+                if(AttemptCastSpell(Ability.Meteor,target)) return;
+
+
+            }
+            else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Alchemist)
+            {
+                //The character with initiative is a figher, do something here...
+
+                Console.WriteLine("this is a Alchemist");
             }
 
-            #endregion
+
+            // default action for all classes
+            TeamHeroCoder.PerformHeroAbility(Ability.Attack, target);
 
         }
+
+        static void InitializeDictionaries()
+        {
+
+            SpellCosts.Add(nameof(Ability.MagicMissile),10);
+            SpellCosts.Add(nameof(Ability.Slow), 15);
+            SpellCosts.Add(nameof(Ability.Petrify), 15);
+            SpellCosts.Add(nameof(Ability.PoisonNova), 15);
+            SpellCosts.Add(nameof(Ability.FlameStrike), 30);
+            SpellCosts.Add(nameof(Ability.Fireball), 25);
+            SpellCosts.Add(nameof(Ability.Meteor), 60);
+            SpellCosts.Add(nameof(Ability.Doom), 15);
+            SpellCosts.Add(nameof(Ability.QuickDispel), 10);
+
+            SpellCosts.Add(nameof(Ability.CureLight), 10);
+            SpellCosts.Add(nameof(Ability.CureSerious), 20);
+            SpellCosts.Add(nameof(Ability.MassHeal), 20);
+            SpellCosts.Add(nameof(Ability.Resurrection), 25);
+            SpellCosts.Add(nameof(Ability.Haste), 15);
+            SpellCosts.Add(nameof(Ability.Faith), 15);
+            SpellCosts.Add(nameof(Ability.Brave), 15);
+            SpellCosts.Add(nameof(Ability.AutoLife), 25);
+            SpellCosts.Add(nameof(Ability.QuickCleanse), 10);
+            SpellCosts.Add(nameof(Ability.QuickHeal), 15);
+
+            SpellCosts.Add(nameof(Ability.Cleanse), 15);
+            SpellCosts.Add(nameof(Ability.Dispel), 15);
+
+        }
+
+
+        static bool AttemptUseItem(Item item, Ability ability, Hero target)
+        {
+            foreach (InventoryItem ii in TeamHeroCoder.BattleState.allyInventory)
+            {
+                if (ii.item == item && ii.count > 0)
+                {
+                    TeamHeroCoder.PerformHeroAbility(ability, target);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static bool AttemptCastSpell(Ability ability, Hero target)
+        {
+
+            string abilityName = ability.ToString();
+
+            if (!SpellCosts.ContainsKey(abilityName))
+            {
+                Console.WriteLine("Spell not in dict!");
+                return false;
+            }
+
+            if (activeHero.mana >= SpellCosts[abilityName])
+            {
+                TeamHeroCoder.PerformHeroAbility(ability, target);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }
