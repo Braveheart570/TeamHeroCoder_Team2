@@ -161,8 +161,52 @@ namespace PlayerCoder
             {
                 //The character with initiative is a figher, do something here...
 
-                Console.WriteLine("this is a Alchemist");
+                Console.WriteLine("this is an Alchemist");
+
+
+                //dispel auto life on foe
+                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                {
+                    if (hasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
+                    {
+                        if(AttemptCastSpell(Ability.Dispel,h))return;
+                    }
+                }
+
+                //check use potion
+                Hero allyToHeal = FindHeroWithHealthPercentBellow(30,TeamHeroCoder.BattleState.allyHeroes);
+                if (allyToHeal != null)
+                {
+                    if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
+                }
+
+
+                //check use ether
+                Hero allyToEther = FindHeroWithManaPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
+                if (allyToEther != null)
+                {
+                    if (AttemptUseItem(Item.Ether, Ability.Ether, allyToEther)) return;
+                }
+
+
+                //check craft ether
+
+
             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
             // default action for all classes
@@ -251,6 +295,19 @@ namespace PlayerCoder
             foreach(Hero h in team)
             {
                 if (((float)h.health/(float)h.maxHealth)*100.0f < percent)
+                {
+                    return h;
+                }
+            }
+
+            return null;
+        }
+
+        static public Hero FindHeroWithManaPercentBellow(int percent, List<Hero> team)
+        {
+            foreach (Hero h in team)
+            {
+                if (((float)h.mana / (float)h.maxMana) * 100.0f < percent)
                 {
                     return h;
                 }
