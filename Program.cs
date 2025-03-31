@@ -90,6 +90,27 @@ namespace PlayerCoder
                 }
 
 
+                //wizard clense and buffs
+                Hero Wizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                //note: this will not work will with parties that have more than one wizard.
+                if (Wizard != null)
+                {
+                    //cleanse if silenced
+                    if (hasStatus(Wizard, StatusEffect.Silence))
+                    {
+                        Console.WriteLine("Attempting quick cleanse on silenced wizard");
+                        if (AttemptCastSpell(Ability.QuickCleanse, Wizard)) return;
+                    }
+
+                    // cast faith on wizard
+                    if (BuffNotBuffed(StatusEffect.Faith,Ability.Faith,Wizard))return;
+
+                }
+
+
+
+
+
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
@@ -208,6 +229,36 @@ namespace PlayerCoder
             }
 
             return null;
+        }
+
+        static public Hero FindClassOnTeam(List<Hero> heroes, HeroJobClass jClass)
+        {
+            foreach (Hero h in heroes)
+            {
+                if (h.jobClass == jClass) return h;
+            }
+
+            return null;
+        }
+
+        static public bool BuffNotBuffed(StatusEffect status, Ability ability, Hero targetHero)
+        {
+
+            if (targetHero.health <= 0)
+            {
+                return false;
+            }
+            
+
+            if (!hasStatus(targetHero, status))
+            {
+                
+                return AttemptCastSpell(ability, targetHero);
+            }
+            else
+            {
+                return false;
+            }
         }
 
     }
