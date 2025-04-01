@@ -134,7 +134,7 @@ namespace PlayerCoder
                 bool foundDebuffedAlly = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
-                    if (h.statusEffectsAndDurations.Count > 0)
+                    if (NegStatusCount(h) > 0)
                     {
                         foundDebuffedAlly = true;
                         if(AttemptCastSpell(Ability.QuickCleanse, h))return;
@@ -254,7 +254,7 @@ namespace PlayerCoder
                 bool foundAllyWithDebuff = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
-                    if (h.statusEffectsAndDurations.Count > 0)
+                    if (NegStatusCount(h) > 0)
                     {
                         foundAllyWithDebuff = true;
                         if (AttemptCastSpell(Ability.Cleanse, h)) return;
@@ -431,6 +431,12 @@ namespace PlayerCoder
                 return false;
             }
 
+            if (ability != Ability.Resurrection && target.health <= 0)
+            {
+                Console.WriteLine("Can't cast spell, Target is dead");
+                return false;
+            }
+
             string abilityName = ability.ToString();
 
             if (!SpellCosts.ContainsKey(abilityName))
@@ -538,9 +544,34 @@ namespace PlayerCoder
             }
             else
             {
-                Console.WriteLine(targetHero.jobClass.ToString() + " alread has " + status.ToString());
+                Console.WriteLine(targetHero.jobClass.ToString() + " already has " + status.ToString());
                 return false;
             }
+        }
+
+        static public int NegStatusCount(Hero h)
+        {
+
+            int negCount = 0;   
+
+            foreach (StatusEffectAndDuration se in h.statusEffectsAndDurations)
+            {
+                if (
+                    se.statusEffect == StatusEffect.Defaith || 
+                    se.statusEffect == StatusEffect.Silence || 
+                    se.statusEffect == StatusEffect.Slow || 
+                    se.statusEffect == StatusEffect.Debrave || 
+                    se.statusEffect == StatusEffect.Doom ||
+                    se.statusEffect == StatusEffect.Petrified ||
+                    se.statusEffect == StatusEffect.Petrifying ||
+                    se.statusEffect == StatusEffect.Poison
+                    )
+                {
+                    negCount++;
+                }
+            }
+
+            return negCount;
         }
 
     }
