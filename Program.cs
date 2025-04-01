@@ -77,7 +77,7 @@ namespace PlayerCoder
 
 
                 //resurrection
-                Hero resTarget = FindHeroWithHealthPercentBellow(10, TeamHeroCoder.BattleState.allyHeroes);
+                Hero resTarget = FindHeroWithHealthPercentBellow(1, TeamHeroCoder.BattleState.allyHeroes);
                 if (resTarget != null)
                 {
                     if (AttemptCastSpell(Ability.Resurrection, resTarget)) return;
@@ -308,6 +308,12 @@ namespace PlayerCoder
 
         static bool AttemptUseItem(Item item, Ability ability, Hero target)
         {
+
+            if (target.health <= 0)
+            {
+                return false;
+            }
+
             int count = GetItemCount(item, TeamHeroCoder.BattleState.allyInventory);
 
             if (count != -1 && count > 0)
@@ -321,6 +327,12 @@ namespace PlayerCoder
 
         static bool AttemptCastSpell(Ability ability, Hero target)
         {
+
+            if (hasStatus(activeHero, StatusEffect.Silence))
+            {
+                Console.WriteLine("Can't cast spell, hero is silenced");
+                return false;
+            }
 
             string abilityName = ability.ToString();
 
