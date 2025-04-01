@@ -19,6 +19,7 @@ namespace PlayerCoder
     {
 
         static Dictionary<string, double> SpellCosts =  new();
+        static Dictionary<string, double> ItemEssenceCosts = new();
 
         static bool DictsInitialized = false;
 
@@ -241,6 +242,18 @@ namespace PlayerCoder
             SpellCosts.Add(nameof(Ability.Cleanse), 15);
             SpellCosts.Add(nameof(Ability.Dispel), 15);
 
+
+
+            ItemEssenceCosts.Add(nameof(Ability.CraftPotion), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftRevive), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftSilenceRemedy), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftPoisonRemedy), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftPetrifyRemedy), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftFullRemedy), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftEther), 2);
+            ItemEssenceCosts.Add(nameof(Ability.CraftElixir), 3);
+            ItemEssenceCosts.Add(nameof(Ability.CraftMegaElixir), 4);
+
         }
 
 
@@ -276,6 +289,29 @@ namespace PlayerCoder
             else
             {
                 Console.WriteLine("not enough mana");
+                return false;
+            }
+        }
+
+
+        static bool AttemptCraftItem(Item item, Ability ability)
+        {
+            string itemName = ability.ToString();
+
+            if (!ItemEssenceCosts.ContainsKey(itemName))
+            {
+                Console.WriteLine("Item not in dict!");
+                return false;
+            }
+
+
+            if (TeamHeroCoder.BattleState.allyEssenceCount >= ItemEssenceCosts[itemName])
+            {
+                return AttemptCastSpell(ability, null);
+            }
+            else
+            {
+                Console.WriteLine("not enough Essence");
                 return false;
             }
         }
