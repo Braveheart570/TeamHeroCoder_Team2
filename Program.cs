@@ -193,23 +193,55 @@ namespace PlayerCoder
                 //check craft Ether
                 if (GetItemCount(Item.Ether,TeamHeroCoder.BattleState.allyInventory) < 1)
                 {
-                    if (AttemptCraftItem(Item.Ether,Ability.Ether)) return;
+                    if (AttemptCraftItem(Item.Ether,Ability.CraftEther)) return;
                 }
 
+
+                //cleans ally with debufs
+                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                {
+                    if (h.statusEffectsAndDurations.Count > 0)
+                    {
+                        if (AttemptCastSpell(Ability.Cleanse, h)) return;
+                    }
+                }
+
+
+                //check use potion again
+                allyToHeal = null;
+                allyToHeal = FindHeroWithHealthPercentBellow(60, TeamHeroCoder.BattleState.allyHeroes);
+                if (allyToHeal != null)
+                {
+                    if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
+                }
+
+                // check every hero has haste
+                foreach(Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                {
+                    if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, h)) return;
+                }
+
+                //check craft Potion
+                if (GetItemCount(Item.Potion, TeamHeroCoder.BattleState.allyInventory) < 1)
+                {
+                    if (AttemptCraftItem(Item.Potion, Ability.CraftPotion)) return;
+                }
+
+
+                //dispel positive perks on enemy team
+                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                {
+                    if (h.statusEffectsAndDurations.Count > 0)
+                    {
+                        if(AttemptCastSpell(Ability.Dispel, h))return;
+                    }
+                }
+
+
+                //if we reach this point without performing an action, craft Ether
+
+                if (AttemptCraftItem(Item.Ether,Ability.CraftEther)) return;
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
