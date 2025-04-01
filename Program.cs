@@ -65,15 +65,20 @@ namespace PlayerCoder
             {
                 //The character with initiative is a figher, do something here...
 
-                Console.WriteLine("this is a cleric");
+                Console.WriteLine("------this is a cleric------");
 
 
                 // haste on self
                 if (!hasStatus(activeHero, StatusEffect.Haste))
                 {
-                    Console.WriteLine("Cleric does not have haste, casting haste on cleric");
                     if(AttemptCastSpell(Ability.Haste,activeHero))return;
                 }
+                else
+                {
+                    Console.WriteLine("Cleric has haste");
+                }
+
+                
 
 
                 //resurrection
@@ -82,6 +87,12 @@ namespace PlayerCoder
                 {
                     if (AttemptCastSpell(Ability.Resurrection, resTarget)) return;
                 }
+                else
+                {
+                    Console.WriteLine("no dead heros");
+                }
+
+                
 
                 //cure seriouse
                 Hero cureTarget = FindHeroWithHealthPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
@@ -89,7 +100,12 @@ namespace PlayerCoder
                 {
                     if (AttemptCastSpell(Ability.CureSerious, cureTarget)) return;
                 }
+                else
+                {
+                    Console.WriteLine("no allies on low health");
+                }
 
+                
 
                 //wizard clense and buffs
                 Hero Wizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
@@ -99,35 +115,49 @@ namespace PlayerCoder
                     //cleanse if silenced
                     if (hasStatus(Wizard, StatusEffect.Silence))
                     {
-                        Console.WriteLine("Attempting quick cleanse on silenced wizard");
                         if (AttemptCastSpell(Ability.QuickCleanse, Wizard)) return;
                     }
+                    else
+                    {
+                        Console.WriteLine("Wizard is not silenced");
+                    }
+
+
 
                     // cast faith on wizard
-                    if (BuffNotBuffed(StatusEffect.Faith,Ability.Faith,Wizard))return;
+                    if (BuffNotBuffed(StatusEffect.Faith, Ability.Faith, Wizard)) return;
 
                 }
 
 
                 //cleans ally with debufs
+                bool foundDebuffedAlly = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
                     if (h.statusEffectsAndDurations.Count > 0)
                     {
+                        foundDebuffedAlly = true;
                         if(AttemptCastSpell(Ability.QuickCleanse, h))return;
                     }
                 }
+                if (!foundDebuffedAlly) Console.WriteLine("No allies are debuffed");
+
+
 
 
                 //use ether on ally
-
+                bool foundLowAllyMana = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
                     if(h.mana < (float)h.maxMana * 0.5f)
                     {
+                        foundLowAllyMana = true;
                         if (AttemptUseItem(Item.Ether, Ability.Ether, h)) return;
                     }
                 }
+                if (!foundLowAllyMana) Console.WriteLine("No allies on low mana");
+
+
 
 
                 //quick heal
@@ -135,6 +165,10 @@ namespace PlayerCoder
                 if (qHealTarget != null)
                 {
                     if (AttemptCastSpell(Ability.QuickHeal, qHealTarget)) return;
+                }
+                else
+                {
+                    Console.WriteLine("No allies to quick heal");
                 }
 
 
@@ -145,15 +179,17 @@ namespace PlayerCoder
             {
                 //The character with initiative is a figher, do something here...
 
-                Console.WriteLine("this is a wizard");
+                Console.WriteLine("------this is a wizard------");
 
                 if (activeHero.mana < activeHero.maxMana*0.4f)
                 {
-                    Console.WriteLine("using ether on wizard");
                     if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero)) return;
                 }
+                else
+                {
+                    Console.WriteLine("Wizard not on low mana");
+                }
 
-                Console.WriteLine("casting meteor");
                 if(AttemptCastSpell(Ability.Meteor,target)) return;
 
 
@@ -162,23 +198,32 @@ namespace PlayerCoder
             {
                 //The character with initiative is a figher, do something here...
 
-                Console.WriteLine("this is an Alchemist");
+                Console.WriteLine("------this is an Alchemist------");
 
 
                 //dispel auto life on foe
+                bool foundFoeWithAutoLife = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                 {
                     if (hasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
                     {
+                        foundFoeWithAutoLife = true;
                         if(AttemptCastSpell(Ability.Dispel,h))return;
                     }
                 }
+                if (!foundFoeWithAutoLife) Console.WriteLine("No enemy with auto life");
+
+
 
                 //check use potion
                 Hero allyToHeal = FindHeroWithHealthPercentBellow(30,TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToHeal != null)
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
+                }
+                else
+                {
+                    Console.WriteLine("No Ally needs a potion");
                 }
 
 
@@ -188,6 +233,10 @@ namespace PlayerCoder
                 {
                     if (AttemptUseItem(Item.Ether, Ability.Ether, allyToEther)) return;
                 }
+                else
+                {
+                    Console.WriteLine("No Ally needs an Ether");
+                }
 
 
                 //check craft Ether
@@ -195,16 +244,25 @@ namespace PlayerCoder
                 {
                     if (AttemptCraftItem(Item.Ether,Ability.CraftEther)) return;
                 }
+                else
+                {
+                    Console.WriteLine("Don't need to craft Ether");
+                }
 
 
                 //cleans ally with debufs
+                bool foundAllyWithDebuff = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
                     if (h.statusEffectsAndDurations.Count > 0)
                     {
+                        foundAllyWithDebuff = true;
                         if (AttemptCastSpell(Ability.Cleanse, h)) return;
                     }
                 }
+                if (!foundAllyWithDebuff) Console.WriteLine("No Ally to clense");
+
+
 
 
                 //check use potion again
@@ -214,21 +272,41 @@ namespace PlayerCoder
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
                 }
+                else
+                {
+                    Console.WriteLine("No Ally needs a potion");
+                }
+
+
+
 
                 // check every hero has haste
-                foreach(Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                bool foundAllyWithoutHaste = false;
+                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
+                    foundAllyWithoutHaste = true;
                     if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, h)) return;
                 }
+                if (!foundAllyWithoutHaste) Console.WriteLine("All allies have haste");
+
+
+
 
                 //check craft Potion
                 if (GetItemCount(Item.Potion, TeamHeroCoder.BattleState.allyInventory) < 1)
                 {
                     if (AttemptCraftItem(Item.Potion, Ability.CraftPotion)) return;
                 }
+                else
+                {
+                    Console.WriteLine("Don't need to craft Potion");
+                }
+
+
 
 
                 //dispel positive perks on enemy team
+                bool foundEnemyToDispel = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                 {
                     if (h.statusEffectsAndDurations.Count > 0)
@@ -236,6 +314,9 @@ namespace PlayerCoder
                         if(AttemptCastSpell(Ability.Dispel, h))return;
                     }
                 }
+                if (!foundEnemyToDispel) Console.WriteLine("no enemies to dispel");
+
+
 
 
                 //if we reach this point without performing an action, craft Ether
@@ -277,6 +358,16 @@ namespace PlayerCoder
             SpellCosts.Add(nameof(Ability.Cleanse), 15);
             SpellCosts.Add(nameof(Ability.Dispel), 15);
 
+            SpellCosts.Add(nameof(Ability.CraftPotion), 10);
+            SpellCosts.Add(nameof(Ability.CraftRevive), 10);
+            SpellCosts.Add(nameof(Ability.CraftSilenceRemedy), 10);
+            SpellCosts.Add(nameof(Ability.CraftPoisonRemedy), 10);
+            SpellCosts.Add(nameof(Ability.CraftPetrifyRemedy), 10);
+            SpellCosts.Add(nameof(Ability.CraftFullRemedy), 10);
+            SpellCosts.Add(nameof(Ability.CraftEther), 10);
+            SpellCosts.Add(nameof(Ability.CraftElixir), 20);
+            SpellCosts.Add(nameof(Ability.CraftMegaElixir), 25);
+
 
 
             ItemEssenceCosts.Add(nameof(Ability.CraftPotion), 2);
@@ -311,6 +402,7 @@ namespace PlayerCoder
 
             if (target.health <= 0)
             {
+                Console.WriteLine("Item Target is Dead");
                 return false;
             }
 
@@ -318,12 +410,17 @@ namespace PlayerCoder
 
             if (count != -1 && count > 0)
             {
+                Console.WriteLine("Using " + item.ToString() + " on " + target.jobClass.ToString());
                 TeamHeroCoder.PerformHeroAbility(ability, target);
                 return true;
             }
-            
+
+            Console.WriteLine("not enough " + item.ToString());
             return false;
         }
+
+
+
 
         static bool AttemptCastSpell(Ability ability, Hero target)
         {
@@ -338,18 +435,19 @@ namespace PlayerCoder
 
             if (!SpellCosts.ContainsKey(abilityName))
             {
-                Console.WriteLine("Spell not in dict!");
+                Console.WriteLine(abilityName + " Spell not in dict!");
                 return false;
             }
 
             if (activeHero.mana >= SpellCosts[abilityName])
             {
+                Console.WriteLine("Casting " + abilityName + " on " + target.jobClass.ToString());
                 TeamHeroCoder.PerformHeroAbility(ability, target);
                 return true;
             }
             else
             {
-                Console.WriteLine("not enough mana");
+                Console.WriteLine("not enough mana to cast " + abilityName);
                 return false;
             }
         }
@@ -361,18 +459,18 @@ namespace PlayerCoder
 
             if (!ItemEssenceCosts.ContainsKey(itemName))
             {
-                Console.WriteLine("Item not in dict!");
+                Console.WriteLine(itemName + " Item not in dict!");
                 return false;
             }
 
 
             if (TeamHeroCoder.BattleState.allyEssenceCount >= ItemEssenceCosts[itemName])
             {
-                return AttemptCastSpell(ability, null);
+                return AttemptCastSpell(ability, activeHero);
             }
             else
             {
-                Console.WriteLine("not enough Essence");
+                Console.WriteLine("not enough Essence to craft " + itemName);
                 return false;
             }
         }
@@ -428,6 +526,7 @@ namespace PlayerCoder
 
             if (targetHero.health <= 0)
             {
+                Console.WriteLine("Cannot buff dead target");
                 return false;
             }
             
@@ -439,6 +538,7 @@ namespace PlayerCoder
             }
             else
             {
+                Console.WriteLine(targetHero.jobClass.ToString() + " alread has " + status.ToString());
                 return false;
             }
         }
