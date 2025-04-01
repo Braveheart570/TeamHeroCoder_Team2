@@ -190,8 +190,11 @@ namespace PlayerCoder
                 }
 
 
-                //check craft ether
-
+                //check craft Ether
+                if (GetItemCount(Item.Ether,TeamHeroCoder.BattleState.allyInventory) < 1)
+                {
+                    if (AttemptCraftItem(Item.Ether,Ability.Ether)) return;
+                }
 
             }
 
@@ -257,16 +260,30 @@ namespace PlayerCoder
         }
 
 
-        static bool AttemptUseItem(Item item, Ability ability, Hero target)
+        static int GetItemCount(Item item, List<InventoryItem> inv)
         {
-            foreach (InventoryItem ii in TeamHeroCoder.BattleState.allyInventory)
+            foreach (InventoryItem ii in inv)
             {
-                if (ii.item == item && ii.count > 0)
+                if (ii.item == item)
                 {
-                    TeamHeroCoder.PerformHeroAbility(ability, target);
-                    return true;
+                    return ii.count;
                 }
             }
+
+            return -1;
+        }
+
+
+        static bool AttemptUseItem(Item item, Ability ability, Hero target)
+        {
+            int count = GetItemCount(item, TeamHeroCoder.BattleState.allyInventory);
+
+            if (count != -1 && count > 0)
+            {
+                TeamHeroCoder.PerformHeroAbility(ability, target);
+                return true;
+            }
+            
             return false;
         }
 
