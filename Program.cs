@@ -51,10 +51,15 @@ namespace PlayerCoder
             {
                 if (hero.health > 0)
                 {
-                    if (target == null)
-                        target = hero;
-                    else if (hero.health < target.health)
-                        target = hero;
+
+                    target = hero;
+                    break;
+
+                    // not in use currently
+                    //if (target == null)
+                    //    target = hero;
+                    //else if (hero.health < target.health)
+                    //    target = hero;
                 }
             }
 
