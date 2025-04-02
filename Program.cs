@@ -149,7 +149,7 @@ namespace PlayerCoder
                 bool foundLowAllyMana = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
-                    if(h.mana < (float)h.maxMana * 0.5f)
+                    if(h.mana < (float)h.maxMana * 0.4f)
                     {
                         foundLowAllyMana = true;
                         if (AttemptUseItem(Item.Ether, Ability.Ether, h)) return;
@@ -320,13 +320,13 @@ namespace PlayerCoder
 
 
                 //if we reach this point without performing an action, craft Ether
-
                 if (AttemptCraftItem(Item.Ether,Ability.CraftEther)) return;
             }
 
 
 
             // default action for all classes
+            Console.WriteLine("Performing basic attack");
             TeamHeroCoder.PerformHeroAbility(Ability.Attack, target);
 
         }
