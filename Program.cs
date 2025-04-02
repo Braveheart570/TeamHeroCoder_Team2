@@ -87,7 +87,7 @@ namespace PlayerCoder
 
 
                 //resurrection
-                Hero resTarget = FindHeroWithHealthPercentBellow(1, TeamHeroCoder.BattleState.allyHeroes);
+                Hero resTarget = FindHeroWithHealthPercentBellow(10, TeamHeroCoder.BattleState.allyHeroes);
                 if (resTarget != null)
                 {
                     if (AttemptCastSpell(Ability.Resurrection, resTarget)) return;
