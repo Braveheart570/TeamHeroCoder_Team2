@@ -47,16 +47,25 @@ namespace PlayerCoder
 
             // set default target
             Hero target = null;
+            int liveEnemies = 0;
             foreach (Hero hero in TeamHeroCoder.BattleState.foeHeroes)
             {
                 if (hero.health > 0)
                 {
+                    liveEnemies++;
                     if (target == null)
                         target = hero;
                     else if (hero.health < target.health)
                         target = hero;
                 }
             }
+
+            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10)
+            {
+                TeamHeroCoder.PerformHeroAbility(Ability.Attack,target);
+                return;
+            }
+
 
 
             //--- class code ---//
