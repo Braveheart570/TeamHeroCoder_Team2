@@ -73,6 +73,36 @@ namespace PlayerCoder
 
                 Console.WriteLine("------this is a cleric------");
 
+                // one shot logic
+                if (FindHeroWithHealthPercentBellow(30,TeamHeroCoder.BattleState.allyHeroes) == null)
+                {
+                    Hero enemyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes, HeroJobClass.Cleric);
+                    if (enemyCleric != null && enemyCleric.health > 0)
+                    {
+                        if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / enemyCleric.physicalDefense) >= enemyCleric.health)
+                        {
+                            TeamHeroCoder.PerformHeroAbility(Ability.Attack, enemyCleric);
+                            Console.WriteLine("CLERIC IS ONE SHOT!");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                        {
+                            if (h.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / h.physicalDefense) >= h.health)
+                            {
+                                TeamHeroCoder.PerformHeroAbility(Ability.Attack, h);
+                                Console.WriteLine("HE'S ONE SHOT!");
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+
+                
+
 
                 if (activeHero.health < activeHero.maxHealth*0.4f)
                 {
@@ -211,6 +241,34 @@ namespace PlayerCoder
                 
 
                 Console.WriteLine("------this is an Alchemist------");
+
+                //one shot logic
+                if (FindHeroWithHealthPercentBellow(30, TeamHeroCoder.BattleState.allyHeroes) == null)
+                {
+                    Hero enemyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes, HeroJobClass.Cleric);
+                    if (enemyCleric != null && enemyCleric.health > 0)
+                    {
+                        if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / enemyCleric.physicalDefense) >= enemyCleric.health)
+                        {
+                            TeamHeroCoder.PerformHeroAbility(Ability.Attack, enemyCleric);
+                            Console.WriteLine("CLERIC IS ONE SHOT!");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                        {
+                            if (h.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / h.physicalDefense) >= h.health)
+                            {
+                                TeamHeroCoder.PerformHeroAbility(Ability.Attack, h);
+                                Console.WriteLine("HE'S ONE SHOT!");
+                                return;
+                            }
+                        }
+                    }
+                }
+                
 
 
                 //dispel auto life on foe
