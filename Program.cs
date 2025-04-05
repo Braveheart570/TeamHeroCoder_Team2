@@ -29,8 +29,6 @@ namespace PlayerCoder
 
         static public void ProcessAI()
         {
-
-            Console.WriteLine("Processing AI!");
             activeHero = TeamHeroCoder.BattleState.heroWithInitiative;
 
 
@@ -72,13 +70,18 @@ namespace PlayerCoder
 
             if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Cleric)
             {
-                //The character with initiative is a figher, do something here...
 
                 Console.WriteLine("------this is a cleric------");
 
 
+                if (activeHero.health < activeHero.maxHealth*0.4f)
+                {
+                    if (AttemptCastSpell(Ability.CureSerious, activeHero)) return;
+                }
+
+
                 // haste on self
-                if (!hasStatus(activeHero, StatusEffect.Haste))
+                if (!HasStatus(activeHero, StatusEffect.Haste))
                 {
                     if(AttemptCastSpell(Ability.Haste,activeHero))return;
                 }
@@ -118,11 +121,11 @@ namespace PlayerCoder
 
                 //wizard clense and buffs
                 Hero Wizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
-                //note: this will not work will with parties that have more than one wizard.
+                
                 if (Wizard != null)
                 {
                     //cleanse if silenced
-                    if (hasStatus(Wizard, StatusEffect.Silence))
+                    if (HasStatus(Wizard, StatusEffect.Silence))
                     {
                         if (AttemptCastSpell(Ability.QuickCleanse, Wizard)) return;
                     }
@@ -139,7 +142,7 @@ namespace PlayerCoder
                 }
 
 
-                //cleans ally with debufs
+                //cleanse ally with debufs
                 bool foundDebuffedAlly = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
@@ -186,7 +189,7 @@ namespace PlayerCoder
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
-                //The character with initiative is a figher, do something here...
+                
 
                 Console.WriteLine("------this is a wizard------");
 
@@ -205,7 +208,7 @@ namespace PlayerCoder
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Alchemist)
             {
-                //The character with initiative is a figher, do something here...
+                
 
                 Console.WriteLine("------this is an Alchemist------");
 
@@ -214,7 +217,7 @@ namespace PlayerCoder
                 bool foundFoeWithAutoLife = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                 {
-                    if (hasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
+                    if (HasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
                     {
                         foundFoeWithAutoLife = true;
                         if(AttemptCastSpell(Ability.Dispel,h))return;
@@ -434,7 +437,7 @@ namespace PlayerCoder
         static bool AttemptCastSpell(Ability ability, Hero target)
         {
 
-            if (hasStatus(activeHero, StatusEffect.Silence))
+            if (HasStatus(activeHero, StatusEffect.Silence))
             {
                 Console.WriteLine("Can't cast spell, hero is silenced");
                 return false;
@@ -490,7 +493,7 @@ namespace PlayerCoder
             }
         }
 
-        static public bool hasStatus(Hero h, StatusEffect effect)
+        static public bool HasStatus(Hero h, StatusEffect effect)
         {
             foreach (StatusEffectAndDuration s in h.statusEffectsAndDurations)
             {
@@ -546,7 +549,7 @@ namespace PlayerCoder
             }
             
 
-            if (!hasStatus(targetHero, status))
+            if (!HasStatus(targetHero, status))
             {
                 
                 return AttemptCastSpell(ability, targetHero);
