@@ -236,7 +236,7 @@ namespace PlayerCoder
 
 
 
-                //target unprotected alchemists with slow
+                //target alchemists with slow
 
                 Hero targetAlchemist = null;
 
