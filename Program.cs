@@ -58,8 +58,9 @@ namespace PlayerCoder
                 }
             }
 
-            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10)
+            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - target.physicalDefense * (1/target.physicalDefense))
             {
+                Console.WriteLine("Final blow");
                 TeamHeroCoder.PerformHeroAbility(Ability.Attack,target);
                 return;
             }
