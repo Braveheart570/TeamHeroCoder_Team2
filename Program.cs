@@ -269,7 +269,6 @@ namespace PlayerCoder
                         }
                     }
                 }
-                
 
 
                 //dispel auto life on foe
@@ -283,6 +282,33 @@ namespace PlayerCoder
                     }
                 }
                 if (!foundFoeWithAutoLife) Console.WriteLine("No enemy with auto life");
+
+
+
+
+
+                //target unprotected alchemists with slow
+
+                Hero targetAlchemist = null;
+
+                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                {
+                    if (h.jobClass == HeroJobClass.Alchemist && !HasStatus(h, StatusEffect.Slow))
+                    {
+                        targetAlchemist = h;
+                        break;
+                    }
+                }
+                if (targetAlchemist != null)
+                {
+                    AttemptCastSpell(Ability.Slow, targetAlchemist);
+                }
+                else
+                {
+                    Console.WriteLine("no Alchemist on foe team");
+                }
+
+
 
 
 
