@@ -85,14 +85,7 @@ namespace PlayerCoder
 
 
                 // haste on self
-                if (!HasStatus(activeHero, StatusEffect.Haste))
-                {
-                    if(AttemptCastSpell(Ability.Haste,activeHero))return;
-                }
-                else
-                {
-                    Console.WriteLine("Cleric has haste");
-                }
+                if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, activeHero)) return;
 
                 
 
