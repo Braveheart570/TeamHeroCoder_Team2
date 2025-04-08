@@ -392,6 +392,15 @@ namespace PlayerCoder
 
         }
 
+
+
+
+
+
+
+        //-------------------------Functions-------------------------//
+
+
         static void InitializeDictionaries()
         {
 
