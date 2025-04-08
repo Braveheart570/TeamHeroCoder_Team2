@@ -281,7 +281,7 @@ namespace PlayerCoder
                 }
                 if (targetAlchemist != null)
                 {
-                    if(AttemptCastSpell(Ability.Slow, targetAlchemist))return;
+                    AttemptCastSpell(Ability.Slow, targetAlchemist);
                 }
                 else
                 {
