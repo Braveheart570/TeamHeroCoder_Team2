@@ -193,10 +193,47 @@ namespace PlayerCoder
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
-                
-
                 Console.WriteLine("------this is a wizard------");
 
+
+
+                // emergency heal cleric
+                Hero allyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Cleric);
+                if (allyCleric.health > 0 && allyCleric.health < allyCleric.maxHealth*0.4f)
+                {
+
+
+                    float highestEnemyInitiative = 0;
+                    foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                    {
+                        if (h.initiativePercent > highestEnemyInitiative) highestEnemyInitiative = h.initiativePercent;
+                    }
+                    float highestAllyInitiative = 0;
+                    foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                    {
+                        if (h != activeHero && h.initiativePercent > highestAllyInitiative) highestAllyInitiative = h.initiativePercent;
+                    }
+
+
+                    if (highestEnemyInitiative > highestAllyInitiative)
+                    {
+                        if(AttemptUseItem(Item.Potion,Ability.Potion, allyCleric)) return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Cleric is not in danger ally has next turn");
+                    }
+
+
+
+                }
+                else
+                {
+                    Console.WriteLine("Cleric not on low health");
+                }
+
+
+                // check use ether
                 if (activeHero.mana < activeHero.maxMana*0.4f)
                 {
                     if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero)) return;
@@ -206,6 +243,7 @@ namespace PlayerCoder
                     Console.WriteLine("Wizard not on low mana");
                 }
 
+                // cast meteor
                 if(AttemptCastSpell(Ability.Meteor,target)) return;
 
 
