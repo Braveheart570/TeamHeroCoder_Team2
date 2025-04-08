@@ -87,7 +87,17 @@ namespace PlayerCoder
                 // haste on self
                 if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, activeHero)) return;
 
-                
+
+                // check for defaith on wizard
+                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                if (HasStatus(allyWizard,StatusEffect.Defaith))
+                {
+                    if (AttemptCastSpell(Ability.QuickCleanse, allyWizard)) return;
+                }
+                else
+                {
+                    Console.WriteLine("wizard is not defaithed");
+                }
 
 
                 //resurrection
@@ -211,6 +221,18 @@ namespace PlayerCoder
 
                 // check if there is an enemy that can be one shot
                 if (AttemptOneShot()) return;
+
+
+                // check for defaith on wizard
+                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                if (HasStatus(allyWizard, StatusEffect.Defaith))
+                {
+                    if (AttemptCastSpell(Ability.Cleanse, allyWizard)) return;
+                }
+                else
+                {
+                    Console.WriteLine("wizard is not defaithed");
+                }
 
 
                 //dispel auto life on foe
