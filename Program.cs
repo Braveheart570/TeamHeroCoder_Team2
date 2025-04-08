@@ -196,7 +196,6 @@ namespace PlayerCoder
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
-                
 
                 Console.WriteLine("------this is a wizard------");
 
@@ -673,6 +672,22 @@ namespace PlayerCoder
             }
 
             return false;
+        }
+
+
+
+        static public Hero findHeroWithStatus(List<Hero> Heros, StatusEffect status)
+        {
+            foreach (Hero h in Heros) {
+
+                if (HasStatus(h,status))
+                {
+                    return h;
+                }
+            
+            }
+
+            return null;
         }
 
     }
