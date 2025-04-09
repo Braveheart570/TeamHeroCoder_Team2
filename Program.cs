@@ -58,7 +58,7 @@ namespace PlayerCoder
                 }
             }
 
-            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - target.physicalDefense * (1/target.physicalDefense))
+            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - target.physicalDefense * (target.physicalDefense/100))
             {
                 Console.WriteLine("Final blow");
                 TeamHeroCoder.PerformHeroAbility(Ability.Attack,target);
@@ -504,6 +504,12 @@ namespace PlayerCoder
             {
                 Console.WriteLine("Can't cast spell, Target is dead");
                 return false;
+
+            }else if (ability == Ability.Resurrection && target.health > 0)
+            {
+                Console.WriteLine("Can't resurrect living target");
+                return false;
+
             }
 
             string abilityName = ability.ToString();
