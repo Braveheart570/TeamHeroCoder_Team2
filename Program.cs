@@ -101,7 +101,7 @@ namespace PlayerCoder
 
 
                 //resurrection
-                Hero resTarget = FindHeroWithHealthPercentBellow(1, TeamHeroCoder.BattleState.allyHeroes);
+                Hero resTarget = FindHeroWithHealthPercentBellow(0.1f, TeamHeroCoder.BattleState.allyHeroes);
                 if (resTarget != null)
                 {
                     if (AttemptCastSpell(Ability.Resurrection, resTarget)) return;
@@ -114,7 +114,7 @@ namespace PlayerCoder
                 
 
                 //cure seriouse
-                Hero cureTarget = FindHeroWithHealthPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
+                Hero cureTarget = FindHeroWithHealthPercentBellow(50.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (cureTarget != null)
                 {
                     if (AttemptCastSpell(Ability.CureSerious, cureTarget)) return;
@@ -180,7 +180,7 @@ namespace PlayerCoder
 
 
                 //quick heal
-                Hero qHealTarget = FindHeroWithHealthPercentBellow(80, TeamHeroCoder.BattleState.allyHeroes);
+                Hero qHealTarget = FindHeroWithHealthPercentBellow(80.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (qHealTarget != null)
                 {
                     if (AttemptCastSpell(Ability.QuickHeal, qHealTarget)) return;
@@ -276,7 +276,7 @@ namespace PlayerCoder
 
 
                 //check use potion
-                Hero allyToHeal = FindHeroWithHealthPercentBellow(30,TeamHeroCoder.BattleState.allyHeroes);
+                Hero allyToHeal = FindHeroWithHealthPercentBellow(30.0f,TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToHeal != null)
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
@@ -288,7 +288,7 @@ namespace PlayerCoder
 
 
                 //check use ether
-                Hero allyToEther = FindHeroWithManaPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
+                Hero allyToEther = FindHeroWithManaPercentBellow(50.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToEther != null)
                 {
                     if (AttemptUseItem(Item.Ether, Ability.Ether, allyToEther)) return;
@@ -327,7 +327,7 @@ namespace PlayerCoder
 
                 //check use potion again
                 allyToHeal = null;
-                allyToHeal = FindHeroWithHealthPercentBellow(60, TeamHeroCoder.BattleState.allyHeroes);
+                allyToHeal = FindHeroWithHealthPercentBellow(60.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToHeal != null)
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
@@ -560,7 +560,7 @@ namespace PlayerCoder
             return false;
         }
 
-        static public Hero FindHeroWithHealthPercentBellow(int percent, List<Hero> team )
+        static public Hero FindHeroWithHealthPercentBellow(float percent, List<Hero> team )
         {
             foreach(Hero h in team)
             {
@@ -573,7 +573,7 @@ namespace PlayerCoder
             return null;
         }
 
-        static public Hero FindHeroWithManaPercentBellow(int percent, List<Hero> team)
+        static public Hero FindHeroWithManaPercentBellow(float percent, List<Hero> team)
         {
             foreach (Hero h in team)
             {
@@ -645,7 +645,7 @@ namespace PlayerCoder
 
         static public bool AttemptOneShot()
         {
-            if (FindHeroWithHealthPercentBellow(30, TeamHeroCoder.BattleState.allyHeroes) == null)
+            if (FindHeroWithHealthPercentBellow(30.0f, TeamHeroCoder.BattleState.allyHeroes) == null)
             {
                 Hero enemyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes, HeroJobClass.Cleric);
                 if (enemyCleric != null && enemyCleric.health > 0)
