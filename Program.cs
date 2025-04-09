@@ -222,6 +222,18 @@ namespace PlayerCoder
                 if (AttemptOneShot()) return;
 
 
+                // craft emergency ether
+                //this code is not working as intended (crafting too many ethers) BUT it wins the Ctrl & Sustain level. causes 2 other tournament losses.
+                if (FindHeroWithManaPercentBellow(30.0f, TeamHeroCoder.BattleState.allyHeroes) != null)
+                {
+                    if (AttemptCraftItem(Item.Ether, Ability.CraftEther)) return;
+                }
+                else
+                {
+                    Console.WriteLine("Ether not emediatly needed");
+                }
+
+
                 // check for defaith on wizard
                 Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
                 if (HasStatus(allyWizard, StatusEffect.Defaith))
@@ -264,7 +276,7 @@ namespace PlayerCoder
                 }
                 if (targetAlchemist != null)
                 {
-                    if(AttemptCastSpell(Ability.Slow, targetAlchemist))return;
+                    if (AttemptCastSpell(Ability.Slow, targetAlchemist)) return;
                 }
                 else
                 {
