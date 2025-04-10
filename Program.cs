@@ -29,8 +29,6 @@ namespace PlayerCoder
 
         static public void ProcessAI()
         {
-
-            Console.WriteLine("Processing AI!");
             activeHero = TeamHeroCoder.BattleState.heroWithInitiative;
 
 
@@ -47,10 +45,12 @@ namespace PlayerCoder
 
             // set default target
             Hero target = null;
+            int liveEnemies = 0;
             foreach (Hero hero in TeamHeroCoder.BattleState.foeHeroes)
             {
                 if (hero.health > 0)
                 {
+                    liveEnemies++;
                     if (target == null)
                         target = hero;
                     else if (hero.health < target.health)
@@ -58,31 +58,50 @@ namespace PlayerCoder
                 }
             }
 
+            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - target.physicalDefense * (target.physicalDefense/100))
+            {
+                Console.WriteLine("Final blow");
+                TeamHeroCoder.PerformHeroAbility(Ability.Attack,target);
+                return;
+            }
+
+
 
             //--- class code ---//
 
             if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Cleric)
             {
-                //The character with initiative is a figher, do something here...
 
                 Console.WriteLine("------this is a cleric------");
 
+                // check if there is an enemy that can be one shot
+                if (AttemptOneShot()) return;
+
+
+                if (activeHero.health < activeHero.maxHealth*0.4f)
+                {
+                    if (AttemptCastSpell(Ability.CureSerious, activeHero)) return;
+                }
+
 
                 // haste on self
-                if (!hasStatus(activeHero, StatusEffect.Haste))
+                if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, activeHero)) return;
+
+
+                // check for defaith on wizard
+                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                if (HasStatus(allyWizard,StatusEffect.Defaith))
                 {
-                    if(AttemptCastSpell(Ability.Haste,activeHero))return;
+                    if (AttemptCastSpell(Ability.QuickCleanse, allyWizard)) return;
                 }
                 else
                 {
-                    Console.WriteLine("Cleric has haste");
+                    Console.WriteLine("wizard is not defaithed");
                 }
-
-                
 
 
                 //resurrection
-                Hero resTarget = FindHeroWithHealthPercentBellow(1, TeamHeroCoder.BattleState.allyHeroes);
+                Hero resTarget = FindHeroWithHealthPercentBellow(0.1f, TeamHeroCoder.BattleState.allyHeroes);
                 if (resTarget != null)
                 {
                     if (AttemptCastSpell(Ability.Resurrection, resTarget)) return;
@@ -95,7 +114,7 @@ namespace PlayerCoder
                 
 
                 //cure seriouse
-                Hero cureTarget = FindHeroWithHealthPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
+                Hero cureTarget = FindHeroWithHealthPercentBellow(50.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (cureTarget != null)
                 {
                     if (AttemptCastSpell(Ability.CureSerious, cureTarget)) return;
@@ -109,11 +128,11 @@ namespace PlayerCoder
 
                 //wizard clense and buffs
                 Hero Wizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
-                //note: this will not work will with parties that have more than one wizard.
+                
                 if (Wizard != null)
                 {
                     //cleanse if silenced
-                    if (hasStatus(Wizard, StatusEffect.Silence))
+                    if (HasStatus(Wizard, StatusEffect.Silence))
                     {
                         if (AttemptCastSpell(Ability.QuickCleanse, Wizard)) return;
                     }
@@ -130,7 +149,7 @@ namespace PlayerCoder
                 }
 
 
-                //cleans ally with debufs
+                //cleanse ally with debufs
                 bool foundDebuffedAlly = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
@@ -161,7 +180,7 @@ namespace PlayerCoder
 
 
                 //quick heal
-                Hero qHealTarget = FindHeroWithHealthPercentBellow(80, TeamHeroCoder.BattleState.allyHeroes);
+                Hero qHealTarget = FindHeroWithHealthPercentBellow(80.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (qHealTarget != null)
                 {
                     if (AttemptCastSpell(Ability.QuickHeal, qHealTarget)) return;
@@ -177,7 +196,6 @@ namespace PlayerCoder
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
-                //The character with initiative is a figher, do something here...
 
                 Console.WriteLine("------this is a wizard------");
 
@@ -196,16 +214,31 @@ namespace PlayerCoder
             }
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Alchemist)
             {
-                //The character with initiative is a figher, do something here...
+                
 
                 Console.WriteLine("------this is an Alchemist------");
+
+                // check if there is an enemy that can be one shot
+                if (AttemptOneShot()) return;
+
+
+                // check for defaith on wizard
+                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                if (HasStatus(allyWizard, StatusEffect.Defaith))
+                {
+                    if (AttemptCastSpell(Ability.Cleanse, allyWizard)) return;
+                }
+                else
+                {
+                    Console.WriteLine("wizard is not defaithed");
+                }
 
 
                 //dispel auto life on foe
                 bool foundFoeWithAutoLife = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                 {
-                    if (hasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
+                    if (HasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
                     {
                         foundFoeWithAutoLife = true;
                         if(AttemptCastSpell(Ability.Dispel,h))return;
@@ -215,8 +248,35 @@ namespace PlayerCoder
 
 
 
+
+
+                //target alchemists with slow
+
+                Hero targetAlchemist = null;
+
+                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                {
+                    if (h.jobClass == HeroJobClass.Alchemist && !HasStatus(h, StatusEffect.Slow))
+                    {
+                        targetAlchemist = h;
+                        break;
+                    }
+                }
+                if (targetAlchemist != null)
+                {
+                    if(AttemptCastSpell(Ability.Slow, targetAlchemist))return;
+                }
+                else
+                {
+                    Console.WriteLine("no Alchemist on foe team");
+                }
+
+
+
+
+
                 //check use potion
-                Hero allyToHeal = FindHeroWithHealthPercentBellow(30,TeamHeroCoder.BattleState.allyHeroes);
+                Hero allyToHeal = FindHeroWithHealthPercentBellow(30.0f,TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToHeal != null)
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
@@ -228,7 +288,7 @@ namespace PlayerCoder
 
 
                 //check use ether
-                Hero allyToEther = FindHeroWithManaPercentBellow(50, TeamHeroCoder.BattleState.allyHeroes);
+                Hero allyToEther = FindHeroWithManaPercentBellow(50.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToEther != null)
                 {
                     if (AttemptUseItem(Item.Ether, Ability.Ether, allyToEther)) return;
@@ -267,7 +327,7 @@ namespace PlayerCoder
 
                 //check use potion again
                 allyToHeal = null;
-                allyToHeal = FindHeroWithHealthPercentBellow(60, TeamHeroCoder.BattleState.allyHeroes);
+                allyToHeal = FindHeroWithHealthPercentBellow(60.0f, TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToHeal != null)
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
@@ -330,6 +390,15 @@ namespace PlayerCoder
             TeamHeroCoder.PerformHeroAbility(Ability.Attack, target);
 
         }
+
+
+
+
+
+
+
+        //-------------------------Functions-------------------------//
+
 
         static void InitializeDictionaries()
         {
@@ -425,7 +494,7 @@ namespace PlayerCoder
         static bool AttemptCastSpell(Ability ability, Hero target)
         {
 
-            if (hasStatus(activeHero, StatusEffect.Silence))
+            if (HasStatus(activeHero, StatusEffect.Silence))
             {
                 Console.WriteLine("Can't cast spell, hero is silenced");
                 return false;
@@ -435,6 +504,12 @@ namespace PlayerCoder
             {
                 Console.WriteLine("Can't cast spell, Target is dead");
                 return false;
+
+            }else if (ability == Ability.Resurrection && target.health > 0)
+            {
+                Console.WriteLine("Can't resurrect living target");
+                return false;
+
             }
 
             string abilityName = ability.ToString();
@@ -481,7 +556,7 @@ namespace PlayerCoder
             }
         }
 
-        static public bool hasStatus(Hero h, StatusEffect effect)
+        static public bool HasStatus(Hero h, StatusEffect effect)
         {
             foreach (StatusEffectAndDuration s in h.statusEffectsAndDurations)
             {
@@ -491,7 +566,7 @@ namespace PlayerCoder
             return false;
         }
 
-        static public Hero FindHeroWithHealthPercentBellow(int percent, List<Hero> team )
+        static public Hero FindHeroWithHealthPercentBellow(float percent, List<Hero> team )
         {
             foreach(Hero h in team)
             {
@@ -504,7 +579,7 @@ namespace PlayerCoder
             return null;
         }
 
-        static public Hero FindHeroWithManaPercentBellow(int percent, List<Hero> team)
+        static public Hero FindHeroWithManaPercentBellow(float percent, List<Hero> team)
         {
             foreach (Hero h in team)
             {
@@ -537,7 +612,7 @@ namespace PlayerCoder
             }
             
 
-            if (!hasStatus(targetHero, status))
+            if (!HasStatus(targetHero, status))
             {
                 
                 return AttemptCastSpell(ability, targetHero);
@@ -572,6 +647,53 @@ namespace PlayerCoder
             }
 
             return negCount;
+        }
+
+        static public bool AttemptOneShot()
+        {
+            if (FindHeroWithHealthPercentBellow(30.0f, TeamHeroCoder.BattleState.allyHeroes) == null)
+            {
+                Hero enemyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes, HeroJobClass.Cleric);
+                if (enemyCleric != null && enemyCleric.health > 0)
+                {
+                    if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / enemyCleric.physicalDefense) >= enemyCleric.health)
+                    {
+                        TeamHeroCoder.PerformHeroAbility(Ability.Attack, enemyCleric);
+                        Console.WriteLine("FOUND CLERIC IS ONE SHOT!");
+                        return true;
+                    }
+                }
+                else
+                {
+                    foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                    {
+                        if (h.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / h.physicalDefense) >= h.health)
+                        {
+                            TeamHeroCoder.PerformHeroAbility(Ability.Attack, h);
+                            Console.WriteLine(h.jobClass.ToString().ToUpper() + " IS ONE SHOT!");
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+
+        static public Hero findHeroWithStatus(List<Hero> Heros, StatusEffect status)
+        {
+            foreach (Hero h in Heros) {
+
+                if (HasStatus(h,status))
+                {
+                    return h;
+                }
+            
+            }
+
+            return null;
         }
 
     }
