@@ -696,5 +696,19 @@ namespace PlayerCoder
             return null;
         }
 
+        static public Hero findHeroNotWithStatus(List<Hero> Heros, StatusEffect status)
+        {
+            foreach (Hero h in Heros)
+            {
+
+                if (!HasStatus(h, status))
+                {
+                    return h;
+                }
+
+            }
+
+            return null;
+        }
     }
 }
