@@ -185,17 +185,15 @@ namespace PlayerCoder
 
 
                 //use ether on ally
-                bool foundLowAllyMana = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                Hero lowManaAlly = FindHeroWithManaPercentBellow(40,TeamHeroCoder.BattleState.allyHeroes);
+                if (lowManaAlly != null)
                 {
-                    if(h.mana < (float)h.maxMana * 0.4f)
-                    {
-                        foundLowAllyMana = true;
-                        if (AttemptUseItem(Item.Ether, Ability.Ether, h)) return;
-                    }
+                    if (AttemptUseItem(Item.Ether, Ability.Ether, lowManaAlly)) return;
                 }
-                if (!foundLowAllyMana) Console.WriteLine("No allies on low mana");
-
+                else
+                {
+                    Console.WriteLine("No allies on low mana");
+                }
 
 
 
