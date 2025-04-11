@@ -77,6 +77,7 @@ namespace PlayerCoder
                 // check if there is an enemy that can be one shot
                 if (AttemptOneShot()) return;
 
+                if (BuffNotBuffed(StatusEffect.Faith, Ability.Faith, FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes,HeroJobClass.Wizard))) return;
 
                 if (activeHero.health < activeHero.maxHealth*0.4f)
                 {
@@ -199,6 +200,11 @@ namespace PlayerCoder
 
                 Console.WriteLine("------this is a wizard------");
 
+                //Hero foeToSlow = findHeroNotWithStatus(TeamHeroCoder.BattleState.foeHeroes,StatusEffect.Slow);
+                //if (foeToSlow != null) {
+                //    if (AttemptCastSpell(Ability.Slow, foeToSlow)) return;
+                //}
+
                 if (activeHero.mana < activeHero.maxMana*0.4f)
                 {
                     if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero)) return;
@@ -222,61 +228,9 @@ namespace PlayerCoder
                 if (AttemptOneShot()) return;
 
 
-                // check for defaith on wizard
-                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
-                if (HasStatus(allyWizard, StatusEffect.Defaith))
-                {
-                    if (AttemptCastSpell(Ability.Cleanse, allyWizard)) return;
-                }
-                else
-                {
-                    Console.WriteLine("wizard is not defaithed");
-                }
-
-
-                //dispel auto life on foe
-                bool foundFoeWithAutoLife = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
-                {
-                    if (HasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
-                    {
-                        foundFoeWithAutoLife = true;
-                        if(AttemptCastSpell(Ability.Dispel,h))return;
-                    }
-                }
-                if (!foundFoeWithAutoLife) Console.WriteLine("No enemy with auto life");
-
-
-
-
-
-                //target alchemists with slow
-
-                Hero targetAlchemist = null;
-
-                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
-                {
-                    if (h.jobClass == HeroJobClass.Alchemist && !HasStatus(h, StatusEffect.Slow))
-                    {
-                        targetAlchemist = h;
-                        break;
-                    }
-                }
-                if (targetAlchemist != null)
-                {
-                    if(AttemptCastSpell(Ability.Slow, targetAlchemist))return;
-                }
-                else
-                {
-                    Console.WriteLine("no Alchemist on foe team");
-                }
-
-
-
-
 
                 //check use potion
-                Hero allyToHeal = FindHeroWithHealthPercentBellow(30.0f,TeamHeroCoder.BattleState.allyHeroes);
+                Hero allyToHeal = FindHeroWithHealthPercentBellow(50.0f,TeamHeroCoder.BattleState.allyHeroes);
                 if (allyToHeal != null)
                 {
                     if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
@@ -298,9 +252,18 @@ namespace PlayerCoder
                     Console.WriteLine("No Ally needs an Ether");
                 }
 
+                //check craft Potion
+                if (GetItemCount(Item.Potion, TeamHeroCoder.BattleState.allyInventory) < 2)
+                {
+                    if (AttemptCraftItem(Item.Potion, Ability.CraftPotion)) return;
+                }
+                else
+                {
+                    Console.WriteLine("Don't need to craft Potion");
+                }
 
                 //check craft Ether
-                if (GetItemCount(Item.Ether,TeamHeroCoder.BattleState.allyInventory) < 1)
+                if (GetItemCount(Item.Ether,TeamHeroCoder.BattleState.allyInventory) < 2)
                 {
                     if (AttemptCraftItem(Item.Ether,Ability.CraftEther)) return;
                 }
@@ -310,57 +273,21 @@ namespace PlayerCoder
                 }
 
 
-                //cleans ally with debufs
-                bool foundAllyWithDebuff = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
-                {
-                    if (NegStatusCount(h) > 0)
-                    {
-                        foundAllyWithDebuff = true;
-                        if (AttemptCastSpell(Ability.Cleanse, h)) return;
-                    }
-                }
-                if (!foundAllyWithDebuff) Console.WriteLine("No Ally to clense");
-
-
-
-
-                //check use potion again
-                allyToHeal = null;
-                allyToHeal = FindHeroWithHealthPercentBellow(60.0f, TeamHeroCoder.BattleState.allyHeroes);
-                if (allyToHeal != null)
-                {
-                    if (AttemptUseItem(Item.Potion, Ability.Potion, allyToHeal)) return;
-                }
-                else
-                {
-                    Console.WriteLine("No Ally needs a potion");
-                }
-
-
-
+                
 
                 // check every hero has haste
                 bool foundAllyWithoutHaste = false;
                 foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                 {
                     foundAllyWithoutHaste = true;
-                    if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, h)) return;
+                    if (h.jobClass != HeroJobClass.Cleric && BuffNotBuffed(StatusEffect.Haste, Ability.Haste, h)) return;
                 }
                 if (!foundAllyWithoutHaste) Console.WriteLine("All allies have haste");
 
 
 
 
-                //check craft Potion
-                if (GetItemCount(Item.Potion, TeamHeroCoder.BattleState.allyInventory) < 1)
-                {
-                    if (AttemptCraftItem(Item.Potion, Ability.CraftPotion)) return;
-                }
-                else
-                {
-                    Console.WriteLine("Don't need to craft Potion");
-                }
+                
 
 
 
