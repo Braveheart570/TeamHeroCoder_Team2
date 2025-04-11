@@ -78,6 +78,26 @@ namespace PlayerCoder
                 if (AttemptOneShot()) return;
 
 
+
+                //brave advance logic
+                int fighterCount = 0;
+                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                {
+                    if (h.jobClass == HeroJobClass.Fighter)
+                    {
+                        fighterCount++;
+                    }
+                }
+                if(fighterCount == 3)
+                {
+                    Console.WriteLine("Brave Advance Detected, casting autolife");
+                    if(BuffNotBuffed(StatusEffect.AutoLife,Ability.AutoLife,activeHero))return;
+                }
+
+
+
+
+                // emergency heal
                 if (activeHero.health < activeHero.maxHealth*0.4f)
                 {
                     if (AttemptCastSpell(Ability.CureSerious, activeHero)) return;
