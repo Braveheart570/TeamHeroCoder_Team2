@@ -77,7 +77,16 @@ namespace PlayerCoder
                 // check if there is an enemy that can be one shot
                 if (AttemptOneShot()) return;
 
+
+
+
+                if(BuffNotBuffed(StatusEffect.AutoLife,Ability.AutoLife,activeHero))return;
+
                 if (BuffNotBuffed(StatusEffect.Faith, Ability.Faith, FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes,HeroJobClass.Wizard))) return;
+
+                if (BuffNotBuffed(StatusEffect.AutoLife, Ability.AutoLife, FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard))) return;
+
+
 
                 if (activeHero.health < activeHero.maxHealth*0.4f)
                 {
