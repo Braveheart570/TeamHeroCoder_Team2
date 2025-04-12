@@ -1,4 +1,5 @@
-﻿using TeamHeroCoderLibrary;
+﻿using System.Runtime.CompilerServices;
+using TeamHeroCoderLibrary;
 
 namespace PlayerCoder
 {
@@ -78,7 +79,7 @@ namespace PlayerCoder
             }
 
             // final blow check
-            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - (activeHero.physicalAttack * 10) * target.physicalDefense)
+            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack - activeHero.physicalAttack*10*target.physicalDefense)
             {
                 Console.WriteLine("Final blow");
                 TeamHeroCoder.PerformHeroAbility(Ability.Attack,target);
@@ -90,9 +91,7 @@ namespace PlayerCoder
             {
                 isCtrlAndSustain = true;
 
-                Console.WriteLine("this is Ctrl & Sustain");
-
-                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+                // if in the first stage of Ctrl & sustain strategy
                 if (isCtrlAndSustain && TeamHeroCoder.BattleState.foeEssenceCount >3)
                 {
                     shouldTurtle = true;
@@ -110,7 +109,7 @@ namespace PlayerCoder
                 Console.WriteLine("------this is a cleric------");
 
                 // check if there is an enemy that can be one shot
-                if (AttemptOneShot()) return;
+                if (AttemptAttackWeakEnemy()) return;
 
 
 
@@ -135,7 +134,8 @@ namespace PlayerCoder
                 if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, activeHero)) return;
 
 
-                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+
+                // if not on Ctrl & Sustain or in scond stange of Ctrl&sustain
                 if (!shouldTurtle)
                 {
                     // check for defaith on wizard
@@ -177,7 +177,7 @@ namespace PlayerCoder
                 }
 
 
-                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+                // if not on Ctr & Sustain or in scond stange of Ctrl&sustain
                 if (!shouldTurtle)
                 {
                     //wizard clense and buffs
@@ -272,6 +272,10 @@ namespace PlayerCoder
                     {
                         if (AttemptCastSpell(Ability.Meteor, target)) return;
                     }
+                    else
+                    {
+                        Console.WriteLine("Wizard will not cast meteor while defaithed");
+                    }
                     
                 }
                 else
@@ -279,6 +283,10 @@ namespace PlayerCoder
                     if (findHeroWithStatus(TeamHeroCoder.BattleState.foeHeroes,StatusEffect.Poison) == null)
                     {
                         if (AttemptCastSpell(Ability.PoisonNova, target)) return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Not ready to caste poison");
                     }
                 }
 
@@ -295,12 +303,16 @@ namespace PlayerCoder
                 Console.WriteLine("------this is an Alchemist------");
 
                 // check if there is an enemy that can be one shot
-                if (AttemptOneShot()) return;
+                if (AttemptAttackWeakEnemy()) return;
 
                 // use ether on self
                 if (activeHero.mana < activeHero.maxMana*0.1f)
                 {
                     if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero))return;
+                }
+                else
+                {
+                    Console.WriteLine("Alchemist does not need more mana yet");
                 }
 
 
@@ -753,14 +765,19 @@ namespace PlayerCoder
             return negCount;
         }
 
-        static public bool AttemptOneShot()
+        //this function used to be an "attempt one shot" function but turns out I did the math worng and when I fixed it the team started doing worse in some levels.
+        // I don't really have time to rework the team to work with the "proper" version of this function so I guess it's intentional now :)
+        // Hey, if it aint broke don't fix it right?
+        static public bool AttemptAttackWeakEnemy()
         {
+            // this code is intended for cleric and alchemist so we need to check for anyone who is critically low on health.
             if (FindHeroWithHealthPercentBellow(30.0f, TeamHeroCoder.BattleState.allyHeroes) == null)
             {
+                //prioritize healers
                 Hero enemyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes, HeroJobClass.Cleric);
                 if (enemyCleric != null && enemyCleric.health > 0)
                 {
-                    if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * enemyCleric.physicalDefense >= enemyCleric.health)
+                    if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 >= enemyCleric.health)
                     {
                         TeamHeroCoder.PerformHeroAbility(Ability.Attack, enemyCleric);
                         Console.WriteLine("FOUND CLERIC IS ONE SHOT!");
@@ -771,7 +788,7 @@ namespace PlayerCoder
                 {
                     foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                     {
-                        if (h.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * h.physicalDefense >= h.health)
+                        if (h.health > 0 && activeHero.physicalAttack * 10 >= h.health)
                         {
                             TeamHeroCoder.PerformHeroAbility(Ability.Attack, h);
                             Console.WriteLine(h.jobClass.ToString().ToUpper() + " IS ONE SHOT!");
