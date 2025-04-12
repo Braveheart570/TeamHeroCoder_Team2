@@ -42,7 +42,7 @@ namespace PlayerCoder
             }
 
 
-            
+            Console.WriteLine("\n");
 
             
             Hero target = null;
@@ -95,7 +95,6 @@ namespace PlayerCoder
                 if (isCtrlAndSustain && TeamHeroCoder.BattleState.foeEssenceCount >3)
                 {
                     shouldTurtle = true;
-                    Console.WriteLine("turtling");
                 }
             }
 
@@ -368,7 +367,7 @@ namespace PlayerCoder
                     else
                     {
                         // for this level target the monk instead of alchemists
-                        BuffNotBuffed(StatusEffect.Slow,Ability.Slow,FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes,HeroJobClass.Monk));
+                        if(BuffNotBuffed(StatusEffect.Slow,Ability.Slow,FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes,HeroJobClass.Monk))) return;
                     }
                 }
 
@@ -780,7 +779,7 @@ namespace PlayerCoder
                     if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 >= enemyCleric.health)
                     {
                         TeamHeroCoder.PerformHeroAbility(Ability.Attack, enemyCleric);
-                        Console.WriteLine("FOUND CLERIC IS ONE SHOT!");
+                        Console.WriteLine("CLERIC IS WEAK!");
                         return true;
                     }
                 }
@@ -791,7 +790,7 @@ namespace PlayerCoder
                         if (h.health > 0 && activeHero.physicalAttack * 10 >= h.health)
                         {
                             TeamHeroCoder.PerformHeroAbility(Ability.Attack, h);
-                            Console.WriteLine(h.jobClass.ToString().ToUpper() + " IS ONE SHOT!");
+                            Console.WriteLine(h.jobClass.ToString().ToUpper() + " IS ONE WEAK!");
                             return true;
                         }
                     }
