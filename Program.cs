@@ -43,9 +43,16 @@ namespace PlayerCoder
 
             
 
-            // set default target
+            
             Hero target = null;
             int liveEnemies = 0;
+
+            int fighterCount = 0;
+            int alchemistCount = 0;
+            bool isCtrlAndSustain = false;
+            bool shouldTurtle = false;
+
+            // set default target and checking for special cases
             foreach (Hero hero in TeamHeroCoder.BattleState.foeHeroes)
             {
                 if (hero.health > 0)
@@ -54,21 +61,49 @@ namespace PlayerCoder
                     if (target == null)
                         target = hero;
                     else if (hero.health < target.health)
+                    {
                         target = hero;
+                    }
+
+                    if (hero.jobClass == HeroJobClass.Fighter)
+                    {
+                        fighterCount++;
+                    }
+
+                    if (hero.jobClass == HeroJobClass.Alchemist)
+                    {
+                        alchemistCount++;
+                    }
                 }
             }
 
-            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - target.physicalDefense * (target.physicalDefense/100))
+            // final blow check
+            if (liveEnemies == 1 && target.health <= activeHero.physicalAttack*10 - (activeHero.physicalAttack * 10) * target.physicalDefense)
             {
                 Console.WriteLine("Final blow");
                 TeamHeroCoder.PerformHeroAbility(Ability.Attack,target);
                 return;
             }
 
+            //checking for the Ctrl & Sustain level
+            if (alchemistCount == 2 && TeamHeroCoder.BattleState.foeHeroes.Count == 3)
+            {
+                isCtrlAndSustain = true;
+
+                Console.WriteLine("this is Ctrl & Sustain");
+
+                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+                if (isCtrlAndSustain && TeamHeroCoder.BattleState.foeEssenceCount >3)
+                {
+                    shouldTurtle = true;
+                    Console.WriteLine("turtling");
+                }
+            }
 
 
             //--- class code ---//
 
+            #region ClericCode
             if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Cleric)
             {
 
@@ -80,14 +115,6 @@ namespace PlayerCoder
 
 
                 //brave advance logic
-                int fighterCount = 0;
-                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
-                {
-                    if (h.jobClass == HeroJobClass.Fighter)
-                    {
-                        fighterCount++;
-                    }
-                }
                 if(fighterCount == 3)
                 {
                     Console.WriteLine("Brave Advance Detected, casting autolife");
@@ -108,16 +135,21 @@ namespace PlayerCoder
                 if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, activeHero)) return;
 
 
-                // check for defaith on wizard
-                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
-                if (HasStatus(allyWizard,StatusEffect.Defaith))
+                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+                if (!shouldTurtle)
                 {
-                    if (AttemptCastSpell(Ability.QuickCleanse, allyWizard)) return;
+                    // check for defaith on wizard
+                    Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                    if (HasStatus(allyWizard, StatusEffect.Defaith))
+                    {
+                        if (AttemptCastSpell(Ability.QuickCleanse, allyWizard)) return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("wizard is not defaithed");
+                    }
                 }
-                else
-                {
-                    Console.WriteLine("wizard is not defaithed");
-                }
+                
 
 
                 //resurrection
@@ -144,43 +176,45 @@ namespace PlayerCoder
                     Console.WriteLine("no allies on low health");
                 }
 
-                
 
-                //wizard clense and buffs
-                Hero Wizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
-                
-                if (Wizard != null)
+                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+                if (!shouldTurtle)
                 {
-                    //cleanse if silenced
-                    if (HasStatus(Wizard, StatusEffect.Silence))
+                    //wizard clense and buffs
+                    Hero Wizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+
+                    if (Wizard != null)
                     {
-                        if (AttemptCastSpell(Ability.QuickCleanse, Wizard)) return;
+                        //cleanse if silenced
+                        if (HasStatus(Wizard, StatusEffect.Silence))
+                        {
+                            if (AttemptCastSpell(Ability.QuickCleanse, Wizard)) return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Wizard is not silenced");
+                        }
+
+
+
+                        // cast faith on wizard
+                        if (BuffNotBuffed(StatusEffect.Faith, Ability.Faith, Wizard)) return;
+
                     }
-                    else
+
+
+                    //cleanse ally with debufs
+                    bool foundDebuffedAlly = false;
+                    foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                     {
-                        Console.WriteLine("Wizard is not silenced");
+                        if (NegStatusCount(h) > 0)
+                        {
+                            foundDebuffedAlly = true;
+                            if (AttemptCastSpell(Ability.QuickCleanse, h)) return;
+                        }
                     }
-
-
-
-                    // cast faith on wizard
-                    if (BuffNotBuffed(StatusEffect.Faith, Ability.Faith, Wizard)) return;
-
+                    if (!foundDebuffedAlly) Console.WriteLine("No allies are debuffed");
                 }
-
-
-                //cleanse ally with debufs
-                bool foundDebuffedAlly = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
-                {
-                    if (NegStatusCount(h) > 0)
-                    {
-                        foundDebuffedAlly = true;
-                        if(AttemptCastSpell(Ability.QuickCleanse, h))return;
-                    }
-                }
-                if (!foundDebuffedAlly) Console.WriteLine("No allies are debuffed");
-
 
 
 
@@ -212,24 +246,48 @@ namespace PlayerCoder
 
 
             }
+            #endregion
+            #region WizardCode
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Wizard)
             {
 
                 Console.WriteLine("------this is a wizard------");
 
-                if (activeHero.mana < activeHero.maxMana*0.4f)
+
+                // if not on Ctrl&Sustain or in scond stange of Ctrl&sustain
+                if (!shouldTurtle)
                 {
-                    if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero)) return;
+                    //refill ether
+                    if (activeHero.mana < activeHero.maxMana * 0.4f)
+                    {
+                        if (AttemptUseItem(Item.Ether, Ability.Ether, activeHero)) return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Wizard not on low mana");
+                    }
+
+                    //use meteor
+                    if (!HasStatus(activeHero, StatusEffect.Defaith))
+                    {
+                        if (AttemptCastSpell(Ability.Meteor, target)) return;
+                    }
+                    
                 }
                 else
                 {
-                    Console.WriteLine("Wizard not on low mana");
+                    if (findHeroWithStatus(TeamHeroCoder.BattleState.foeHeroes,StatusEffect.Poison) == null)
+                    {
+                        if (AttemptCastSpell(Ability.PoisonNova, target)) return;
+                    }
                 }
 
-                if(AttemptCastSpell(Ability.Meteor,target)) return;
+                
 
 
             }
+            #endregion
+            #region AlchemistCode
             else if (TeamHeroCoder.BattleState.heroWithInitiative.jobClass == HeroJobClass.Alchemist)
             {
                 
@@ -239,58 +297,68 @@ namespace PlayerCoder
                 // check if there is an enemy that can be one shot
                 if (AttemptOneShot()) return;
 
-
-                // check for defaith on wizard
-                Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
-                if (HasStatus(allyWizard, StatusEffect.Defaith))
+                // use ether on self
+                if (activeHero.mana < activeHero.maxMana*0.1f)
                 {
-                    if (AttemptCastSpell(Ability.Cleanse, allyWizard)) return;
-                }
-                else
-                {
-                    Console.WriteLine("wizard is not defaithed");
+                    if(AttemptUseItem(Item.Ether,Ability.Ether,activeHero))return;
                 }
 
 
-                //dispel auto life on foe
-                bool foundFoeWithAutoLife = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                if (!shouldTurtle)
                 {
-                    if (HasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth*0.6f)
+                    // check for defaith on wizard
+                    Hero allyWizard = FindClassOnTeam(TeamHeroCoder.BattleState.allyHeroes, HeroJobClass.Wizard);
+                    if (HasStatus(allyWizard, StatusEffect.Defaith))
                     {
-                        foundFoeWithAutoLife = true;
-                        if(AttemptCastSpell(Ability.Dispel,h))return;
+                        if (AttemptCastSpell(Ability.Cleanse, allyWizard)) return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("wizard is not defaithed");
+                    }
+
+                    //dispel auto life on foe
+                    bool foundFoeWithAutoLife = false;
+                    foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                    {
+                        if (HasStatus(h, StatusEffect.AutoLife) && h.health < (float)h.maxHealth * 0.6f)
+                        {
+                            foundFoeWithAutoLife = true;
+                            if (AttemptCastSpell(Ability.Dispel, h)) return;
+                        }
+                    }
+                    if (!foundFoeWithAutoLife) Console.WriteLine("No enemy with auto life");
+
+
+                    if (!isCtrlAndSustain)
+                    {
+                        //target alchemists with slow
+
+                        Hero targetAlchemist = null;
+
+                        foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                        {
+                            if (h.jobClass == HeroJobClass.Alchemist && !HasStatus(h, StatusEffect.Slow))
+                            {
+                                targetAlchemist = h;
+                                break;
+                            }
+                        }
+                        if (targetAlchemist != null)
+                        {
+                            if (AttemptCastSpell(Ability.Slow, targetAlchemist)) return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("no Alchemist on foe team");
+                        }
+                    }
+                    else
+                    {
+                        // for this level target the monk instead of alchemists
+                        BuffNotBuffed(StatusEffect.Slow,Ability.Slow,FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes,HeroJobClass.Monk));
                     }
                 }
-                if (!foundFoeWithAutoLife) Console.WriteLine("No enemy with auto life");
-
-
-
-
-
-                //target alchemists with slow
-
-                Hero targetAlchemist = null;
-
-                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
-                {
-                    if (h.jobClass == HeroJobClass.Alchemist && !HasStatus(h, StatusEffect.Slow))
-                    {
-                        targetAlchemist = h;
-                        break;
-                    }
-                }
-                if (targetAlchemist != null)
-                {
-                    if(AttemptCastSpell(Ability.Slow, targetAlchemist))return;
-                }
-                else
-                {
-                    Console.WriteLine("no Alchemist on foe team");
-                }
-
-
-
 
 
                 //check use potion
@@ -328,17 +396,21 @@ namespace PlayerCoder
                 }
 
 
-                //cleans ally with debufs
-                bool foundAllyWithDebuff = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                if (!shouldTurtle)
                 {
-                    if (NegStatusCount(h) > 0)
+                    //cleans ally with debufs
+                    bool foundAllyWithDebuff = false;
+                    foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
                     {
-                        foundAllyWithDebuff = true;
-                        if (AttemptCastSpell(Ability.Cleanse, h)) return;
+                        if (NegStatusCount(h) > 0)
+                        {
+                            foundAllyWithDebuff = true;
+                            if (AttemptCastSpell(Ability.Cleanse, h)) return;
+                        }
                     }
+                    if (!foundAllyWithDebuff) Console.WriteLine("No Ally to clense");
                 }
-                if (!foundAllyWithDebuff) Console.WriteLine("No Ally to clense");
+                
 
 
 
@@ -357,15 +429,18 @@ namespace PlayerCoder
 
 
 
-
-                // check every hero has haste
-                bool foundAllyWithoutHaste = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                if (!shouldTurtle)
                 {
-                    foundAllyWithoutHaste = true;
-                    if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, h)) return;
+                    // check every hero has haste
+                    bool foundAllyWithoutHaste = false;
+                    foreach (Hero h in TeamHeroCoder.BattleState.allyHeroes)
+                    {
+                        foundAllyWithoutHaste = true;
+                        if (BuffNotBuffed(StatusEffect.Haste, Ability.Haste, h)) return;
+                    }
+                    if (!foundAllyWithoutHaste) Console.WriteLine("All allies have haste");
                 }
-                if (!foundAllyWithoutHaste) Console.WriteLine("All allies have haste");
+                
 
 
 
@@ -382,25 +457,36 @@ namespace PlayerCoder
 
 
 
-
-                //dispel positive perks on enemy team
-                bool foundEnemyToDispel = false;
-                foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
+                if (!shouldTurtle)
                 {
-                    if (h.statusEffectsAndDurations.Count > 0)
+                    //dispel positive perks on enemy team
+                    bool foundEnemyToDispel = false;
+                    foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                     {
-                        if(AttemptCastSpell(Ability.Dispel, h))return;
+                        if (h.statusEffectsAndDurations.Count > 0)
+                        {
+                            if (AttemptCastSpell(Ability.Dispel, h)) return;
+                        }
                     }
+                    if (!foundEnemyToDispel) Console.WriteLine("no enemies to dispel");
                 }
-                if (!foundEnemyToDispel) Console.WriteLine("no enemies to dispel");
 
 
 
 
-                //if we reach this point without performing an action, craft Ether
-                if (AttemptCraftItem(Item.Ether,Ability.CraftEther)) return;
+
+                //if we reach this point without performing an action, craft something
+                if (GetItemCount(Item.Potion,TeamHeroCoder.BattleState.allyInventory) < 3)
+                {
+                    if (AttemptCraftItem(Item.Potion, Ability.CraftPotion)) return;
+                }
+                else
+                {
+                    if (AttemptCraftItem(Item.Ether, Ability.CraftEther)) return;
+                }
+                
             }
-
+            #endregion
 
 
             // default action for all classes
@@ -674,7 +760,7 @@ namespace PlayerCoder
                 Hero enemyCleric = FindClassOnTeam(TeamHeroCoder.BattleState.foeHeroes, HeroJobClass.Cleric);
                 if (enemyCleric != null && enemyCleric.health > 0)
                 {
-                    if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / enemyCleric.physicalDefense) >= enemyCleric.health)
+                    if (enemyCleric.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * enemyCleric.physicalDefense >= enemyCleric.health)
                     {
                         TeamHeroCoder.PerformHeroAbility(Ability.Attack, enemyCleric);
                         Console.WriteLine("FOUND CLERIC IS ONE SHOT!");
@@ -685,7 +771,7 @@ namespace PlayerCoder
                 {
                     foreach (Hero h in TeamHeroCoder.BattleState.foeHeroes)
                     {
-                        if (h.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * (1 / h.physicalDefense) >= h.health)
+                        if (h.health > 0 && activeHero.physicalAttack * 10 - (activeHero.physicalAttack * 10) * h.physicalDefense >= h.health)
                         {
                             TeamHeroCoder.PerformHeroAbility(Ability.Attack, h);
                             Console.WriteLine(h.jobClass.ToString().ToUpper() + " IS ONE SHOT!");
